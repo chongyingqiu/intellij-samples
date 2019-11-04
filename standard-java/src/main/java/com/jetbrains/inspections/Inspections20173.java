@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public class Inspections20173 {
+
     private List<String> mutableCollection = new ArrayList<>();
 
     private Map<String, Integer> mapWithDuplicateKeys = new HashMap<>() {{
@@ -20,7 +21,7 @@ public class Inspections20173 {
     }};
 
     public List<String> getList() {
-        return mutableCollection;
+        return Collections.unmodifiableList(mutableCollection);
     }
 
     public boolean compareWith1(CharSequence charSequence) {
@@ -29,25 +30,22 @@ public class Inspections20173 {
     }
 
     public boolean compareWith2(CharSequence charSequence) {
-        return "Some String".equals(charSequence);
+        return "Some String".contentEquals(charSequence);
     }
 
     public void regexp() {
-        final Pattern pattern = Pattern.compile("[\\.]");
+        final Pattern pattern = Pattern.compile("[.]");
     }
 
     public void quickFix(String someValue) {
-        if (someValue.isEmpty()) {
-            //ignore
-        }
+        //ignore
     }
 
     //intention
     public void unrollLoop() {
-        int[] ints = {1, 2, 3};
-        for (int anInt : ints) {
-            System.out.println(anInt);
-        }
+        System.out.println(1);
+        System.out.println(2);
+        System.out.println(3);
     }
 
     public boolean compare(MyClass myClass) {

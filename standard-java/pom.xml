@@ -7,6 +7,12 @@
     <groupId>com.jetbrains</groupId>
     <artifactId>code-samples</artifactId>
     <version>1.0-SNAPSHOT</version>
+    
+    <properties>
+        <java.version>13</java.version>
+        <kotlin.version>1.3.40</kotlin.version>
+    </properties>
+    
     <build>
         <testSourceDirectory>src/test</testSourceDirectory>
         <plugins>
@@ -14,7 +20,7 @@
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
-                <executions>
+                 <executions>
                     <execution>
                         <id>compile</id>
                         <phase>compile</phase>
@@ -28,7 +34,7 @@
                         <goals>
                             <goal>test-compile</goal>
                         </goals>
-                    </execution>
+                    </execution> 
                 </executions>
             </plugin>
             <plugin>
@@ -134,8 +140,5 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
-    <properties>
-        <java.version>13</java.version>
-        <kotlin.version>1.3.40</kotlin.version>
-    </properties>
+    
 </project>

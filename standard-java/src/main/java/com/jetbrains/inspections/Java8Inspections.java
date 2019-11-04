@@ -48,110 +48,80 @@ public class Java8Inspections {
 
         //Replace with forEach on foo
         ArrayList<String> foo = new ArrayList<>();
-        for (String s : foo) {
-            if (s != null) {
-                out.println(s);
-            }
-        }
+        foo.stream().filter(Objects::nonNull).forEach(out::println);
     }
 
     private int replaceWithCountSimple() {
-        int count = 0;
+//        int count = 0;
+//
+//        for (String s : stringArray) {
+//            count++;
+//        }
 
-        for (String s : stringArray) {
-            count++;
-        }
+        int count = (int) Arrays.stream(stringArray).count();
 
         return count;
     }
 
     private int replaceWithCountNested() {
-        int count = 0;
-
-        for (List<String> list : integerStringMap.values()) {
-            if (list != null) {
-                for (String stringVal : list) {
-                    if (stringVal.contains("error")) {
-                        count++;
-                    }
-                }
-            }
-        }
+        int count = (int) integerStringMap.values()
+                .stream()
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(stringVal -> stringVal.contains("error"))
+                .count();
 
         return count;
     }
 
     private int replaceWithSum() {
-        int count = 0;
-
-        for (String s : stringArray) {
-            count += s.length();
-        }
+        int count = Arrays.stream(stringArray).mapToInt(String::length).sum();
 
         return count;
     }
 
     private int replaceWithMapToInt() {
-        int count = 0;
-
-        for (List<String> list : integerStringMap.values()) {
-            if (list != null) {
-                for (String stringVal : list) {
-                    if (stringVal.contains("error")) {
-                        count += stringVal.length();
-                    }
-                }
-            }
-        }
+        int count = integerStringMap.values()
+                .stream()
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .filter(stringVal -> stringVal.contains("error"))
+                .mapToInt(String::length)
+                .sum();
 
         return count;
     }
 
     private List<String> replaceWithCollect() {
-        List<String> result = new ArrayList<>();
+        List<String> result = Arrays.stream(stringArray)
+                .filter(Objects::nonNull)
+                .flatMap(line -> Arrays.stream(line.split("\\s")))
+                .collect(toList());
 
-        for (String line : stringArray) {
-            if (line != null) {
-                for (String word : line.split("\\s")) {
-                    result.add(word);
-                }
-            }
-        }
         return result;
     }
 
     private List<String> replaceWithCollectAndMap() {
-        List<String> result = new ArrayList<>();
+        List<String> result = Arrays.stream(stringArray)
+                .filter(Objects::nonNull)
+                .flatMap(line -> Arrays.stream(line.split(" ")))
+                .map(word -> word.substring(0, 3))
+                .collect(toList());
 
-        for (String line : stringArray) {
-            if (line != null) {
-                for (String word : line.split(" ")) {
-                    result.add(word.substring(0, 3));
-                }
-            }
-        }
         return result;
     }
 
     private List<String> getListOfAllNonEmptyStringValues(Map<String, List<String>> map) {
-        List<String> result = new ArrayList<>();
-        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-            if (entry.getKey()
-                     .isEmpty()) {
-                continue;
-            }
-            List<String> list = entry.getValue();
-            if (list == null) {
-                continue;
-            }
-            for (String str : list) {
-                String trimmed = str.trim();
-                if (trimmed.isEmpty()) {
-                    continue;
-                }
-                result.add(trimmed);
-            }
-        }
+        List<String> result = map.entrySet()
+                .stream()
+                .filter(entry -> !entry.getKey()
+                        .isEmpty())
+                .map(Map.Entry::getValue)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .map(String::trim)
+                .filter(trimmed -> !trimmed.isEmpty())
+                .collect(toList());
         return result;
     }
 
@@ -167,11 +137,7 @@ public class Java8Inspections {
     }
 
     private void incrementCounterForId(Map<Integer, Counter> idToCounter, Integer id) {
-        Counter counter = idToCounter.get(id);
-        if (counter == null) {
-            counter = new Counter();
-            idToCounter.put(id, counter);
-        }
+        Counter counter = idToCounter.computeIfAbsent(id, k -> new Counter());
         counter.incrementCount();
     }
 
@@ -185,14 +151,7 @@ public class Java8Inspections {
 
     private void removeIfCountExceedsLimit(Collection<Counter> counters) {
         Predicate<Counter> predicate = (c) -> c.getCount() > 100;
-
-        Iterator<Counter> iterator = counters.iterator();
-        while (iterator.hasNext()) {
-            Counter counter = iterator.next();
-            if (predicate.test(counter)) {
-                iterator.remove();
-            }
-        }
+        counters.removeIf(predicate);
     }
 
     private List<Counter> findTopTenAlt(List<Counter> counters) {
@@ -205,7 +164,7 @@ public class Java8Inspections {
 
     private List<Counter> findTopTen(List<Counter> counters) {
         return counters.stream()
-                       .sorted((o1, o2) -> o1.compareTo(o2))
+                       .sorted(Comparator.naturalOrder())
                        .limit(10)
                        .collect(toList());
 
@@ -213,115 +172,82 @@ public class Java8Inspections {
 
     //Streams: findFirst
     private Converter getFirstConverterForClass(final Class aClass) {
-        for (final Converter converter : converters) {
-            if (converter.canHandle(aClass)) {
-                return converter;
-            }
-        }
-        return Converter.IDENTITY_CONVERTER;
+        return converters.stream()
+                .filter(converter -> converter.canHandle(aClass))
+                .findFirst()
+                .orElse(Converter.IDENTITY_CONVERTER);
     }
 
     //Arrays: findFirst
     public String toCountedLoopInFindFirst(int[] data, List<String> info) {
-        for (int val : data) {
-            for (int x = 0; x <= val; x++) {
-                String str = info.get(x);
-                if (!str.isEmpty()) {
-                    return str;
-                }
-            }
-        }
-        return null;
+        return Arrays.stream(data)
+                .flatMap(val -> IntStream.rangeClosed(0, val))
+                .mapToObj(info::get)
+                .filter(str -> !str.isEmpty())
+                .findFirst()
+                .orElse(null);
     }
 
     //Streams: toArray
     public String[] replaceWithToArray(List<String> data) {
-        List<String> result = new ArrayList<>();
-        for (String str : data) {
-            if (!str.isEmpty()) {
-                result.add(str);
-            }
-        }
-        return result.toArray(new String[0]);
+        return data.stream().filter(str -> !str.isEmpty()).toArray(String[]::new);
     }
 
     //Streams: sorting
     public List<String> getSortedListOfNames(List<Person> persons) {
-        List<String> names = new ArrayList<>();
-        for (Person person : persons) {
-            names.add(person.getName());
-        }
-        Collections.sort(names, String::compareToIgnoreCase);
+        List<String> names = persons.stream()
+                .map(Person::getName)
+                .sorted(String::compareToIgnoreCase)
+                .collect(toList());
         return names;
     }
 
     public long countNumberOfItems(List<String> strings) {
-        return strings.stream()
-                      .count();
+        return strings.size();
     }
 
     //2017.3
     public String[] fuseStepsIntoStream() {
         final Stream<String> stream = Stream.of("a", "b", "c");
 
-        final List<String> strings = stream.collect(Collectors.toList());
-        strings.sort(Comparator.naturalOrder());
-
-        return strings.toArray(new String[0]);
+        return stream.sorted(Comparator.naturalOrder()).toArray(String[]::new);
     }
 
     public Stream<Object> simplifyStreamAPICallChain1() {
-        return Collections.nCopies(10, "")
-                          .stream()
-                          .map(s -> doMapping());
+        return Stream.generate(this::doMapping).limit(10);
     }
 
     public boolean simplifyStreamAPICallChain2() {
         final Stream<String> stream = Stream.of("a", "b", "c");
-        return stream.filter(this::stringMatchesSomeCriteria)
-                     .count() > 0;
+        return stream.anyMatch(this::stringMatchesSomeCriteria);
     }
 
     public Stream<Object> simplifyStreamAPICallChain3(Object[] array) {
-        return IntStream.range(1, 10)
-                        .mapToObj(value -> array[value]);
+        return Arrays.stream(array, 1, 10);
     }
 
     public String useJoiningForStringBuilders(Character[] value) {
-        final StringBuilder builder = new StringBuilder();
-        for (final Character character : value) {
-            builder.append(character);
-        }
-        return builder.toString();
+        return Arrays.stream(value).map(String::valueOf).collect(Collectors.joining());
     }
 
     public String collapseBuilderIntoStreamOperation(CustomError[] ve) {
-        final StringBuilder sb = new StringBuilder(128);
-        sb.append("Number of violations: " + ve.length + " \n");
-        for (final CustomError validationError : ve) {
-            sb.append(validationError.render());
-        }
-        return sb.toString();
+        return Arrays.stream(ve)
+                .map(CustomError::render)
+                .collect(Collectors.joining("", "Number of violations: " + ve.length + " \n", ""));
     }
 
     public MappedField smarterStreamInspections(final String storedName, List<MappedField> persistenceFields) {
-        for (final MappedField mf : persistenceFields) {
-            for (final String n : mf.getLoadNames()) {
-                if (storedName.equals(n)) {
-                    return mf;
-                }
-            }
-        }
-        return null;
+        return persistenceFields.stream()
+                .filter(mf -> Arrays.asList(mf.getLoadNames()).contains(storedName))
+                .findFirst()
+                .orElse(null);
     }
 
     public boolean smarterStreamInspections2(List<Map<String, String>> indexInfo) {
-        boolean indexFound = false;
-        for (Map<String, String> item : indexInfo) {
-            indexFound |= "nested.field.fail".equals((item.get("key")));
-        }
 
-        return indexFound;
+        return indexInfo.stream()
+                .map(item -> "nested.field.fail".equals((item.get("key"))))
+                .reduce(false, (a, b) -> a || b);
     }
 
     public void simplifyMatchOperations(List<String> list) {

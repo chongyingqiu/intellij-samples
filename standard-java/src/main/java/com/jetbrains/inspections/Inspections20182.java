@@ -8,6 +8,7 @@ import java.util.*;
 
 @SuppressWarnings({"unused", "StatementWithEmptyBody"})
 public class Inspections20182 {
+
     private static final int BIG_BUTTON_WIDTH = 10;
     private static final int BUTTON_HEIGHT = 3;
     private static final int[] BUTTON_Y = {5, 6, 7};

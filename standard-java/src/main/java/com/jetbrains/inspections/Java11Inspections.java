@@ -19,7 +19,7 @@ public class Java11Inspections {
 
     private void localVariableSyntaxForLambdaParameters() {
         // these two are both valid for Java 8 onwards
-        BiConsumer<Processor, String> consumer = (Processor x, String y) -> x.process(y);
+        BiConsumer<Processor, String> consumer = (x, y) -> x.process(y);
         //can run inspection to remove redundant param types to get the following
         BiConsumer<Processor, String> consumer2 = (x, y) -> x.process(y);
 
@@ -27,7 +27,7 @@ public class Java11Inspections {
         BiConsumer<Processor, String> consumer3 = (var x, var y) -> x.process(y);
 
         // LVTI for lambdas makes more sense when you need to apply annotations to the params
-        BiConsumer<Processor, String> consumer4 = (@NotNull var x, @Nullable var y) -> x.process(y);
+        BiConsumer<Processor, String> consumer4 = (@NotNull var x, @Nullable var y) -> x.process(y);   //var x, var y refer to Processor x, String y
         //...because this is not allowed
 //        BiConsumer<Processor, String> consumer5 = (@NotNull x, @Nullable y) -> x.process(y);
 
