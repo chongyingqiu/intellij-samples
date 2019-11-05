@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @SuppressWarnings({"unused", "StatementWithEmptyBody"})
@@ -24,12 +25,7 @@ public class Inspections20182 {
     }
 
     private void canReplaceRemoveWithListClear(List<String> list) {
-        int from = 3;
-        int to = 8;
-
-        for (int i = from; i < to; i++) {
-            list.remove(from);
-        }
+        list.subList(3, 8).clear();
     }
 
     private void warnOnListRemoveInsideCountedLoop(List<String> someList) {
@@ -41,81 +37,79 @@ public class Inspections20182 {
     }
 
     private void canUnrollDecreasingLoops() {
-        for (int i = 10; i >= 0; i--) {
-            System.out.println(i);
-        }
+        System.out.println(10);
+        System.out.println(9);
+        System.out.println(8);
+        System.out.println(7);
+        System.out.println(6);
+        System.out.println(5);
+        System.out.println(4);
+        System.out.println(3);
+        System.out.println(2);
+        System.out.println(1);
+        System.out.println(0);
     }
 
     private void canReplaceMapForEachWithEntrySetLoop(Map<String, Integer> map) {
-        map.forEach((k, v) -> {
-            if (k.isEmpty()) return;
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            String k = entry.getKey();
+            Integer v = entry.getValue();
+            if (k.isEmpty()) continue;
             System.out.println("Key: " + k + "; value: " + v);
-        });
+        }
     }
 
     private void canReplaceMapForEachWithEntrySetLoop(Map<String, Integer> map, Map<String, Integer> otherMap) {
-        map.forEach(otherMap::putIfAbsent);
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            otherMap.putIfAbsent(key, value);
+        }
     }
 
     private <T> LinkedList<T> suggestsAtomicOperationForLinkedListFromCollection(Collection<T> collection) {
-        LinkedList<T> list = new LinkedList<>();
-        list.addAll(collection);
-        return list;
+        return new LinkedList<>(collection);
     }
 
     private void canExtractCommonConditionsFromIfStatements(Event event) {
-        if (firstCondition(event) && event.getType() == 3) {
-            //do something
-        } else if (firstCondition(event) && event.getType() == 4) {
-            //do something else
-        } else if (firstCondition(event) && event.getType() == 5) {
-            //do another thing
+        if (firstCondition(event)) {
+            if (event.getType() == 3) {
+                //do something
+            } else if (event.getType() == 4) {
+                //do something else
+            } else if (event.getType() == 5) {
+                //do another thing
+            }
         }
     }
 
     private boolean canSimplifyIfElse() {
-        boolean enable;
-        if (booleanExpression()) {
-            enable = true;
-        } else {
-            enable = anotherBooleanExpression();
-        }
-        return enable;
+        return booleanExpression() || anotherBooleanExpression();
     }
 
     private boolean moreBooleanExpressionsCanBeSimplified(boolean a, boolean b) {
-        if (a && b) {
-            return true;
-        } else {
-            return a;
-        }
+        return a;
     }
 
     private void suggestsAvoidingCompareToForPrimitives(Foo foo, Bar bar) {
-        if (Integer.compare(foo.getValue(), bar.getValue()) == 0) {
+        if (foo.getValue() == bar.getValue()) {
             //do something here
         }
     }
 
     private static Long suggestsUsingAPrimitiveInsteadOfWrapper(List<? extends Long> totals) {
-        Long total = 0L;
-
-        for (Long element: totals) {
-            total += element == null ? 0 : element;
-        }
-
-        return total;
+        return totals.stream().mapToLong(element -> element == null ? 0 : element).sum();
     }
 
     private void suggestsLocalVariableTypeCanBeMoreSpecific() {
-        Object obj = getString();
-        System.out.println(((String) obj).trim());
+        String obj = getString();
+        System.out.println(obj.trim());
     }
 
+    Number stringValue = null;
     private void suggestsChangingTheFieldOrVariableType(final AnotherClass target) {
-        String stringValue = "";
         //uncomment to see suggestions
-//        target.transform(stringValue);
+        target.transform(stringValue);
     }
 
     private Event getEvent(Class<? extends Event> eventClass) throws Exception {
@@ -124,8 +118,7 @@ public class Inspections20182 {
             event = eventClass.getConstructor().newInstance();
         } catch (Exception e) {
             throw new Exception("The argument event class"
-                    + eventClass.getClass()
-                                .getName() // will always print java.lang.Class, not actual event class
+                    + eventClass.getName() // will always print java.lang.Class, not actual event class
                     + " could not be instantiated with a default constructor",
                     e);
         }
@@ -138,7 +131,7 @@ public class Inspections20182 {
     }
 
     private Integer showsRedundantGenericParams() {
-        return Integer.<String>getInteger("p");
+        return Integer.getInteger("p");
     }
 
     //remove the T from A to see this working
@@ -148,25 +141,23 @@ public class Inspections20182 {
 
     //requires "Implicit usage of platform's default charset" inspection (not enabled by default)
     private void suggestsUtF8CharsetWhenUsingPlatformDefaultCharset(OutputStream os) {
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(os);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(os, StandardCharsets.UTF_8);
     }
 
     private String canIntroduceLocalVariableForReturnExpression(List<String> params) {
-        return params.get(1);
+        String secondParameter = params.get(1);
+        return secondParameter;
     }
 
     private void warnsAboutComparingOptionalToNull() {
         final Optional<String> optional = getSomeOptionalValue();
-        if (optional != null) {
+        if (optional.isPresent()) {
             //do something
         }
     }
 
     private void suggestsStringAppendForStringJoiner() {
-        String s = new StringJoiner("")
-                .add("a")
-                .add("b")
-                .toString();
+        String s = "ab";
     }
 
     //private helper methods to make examples clearer

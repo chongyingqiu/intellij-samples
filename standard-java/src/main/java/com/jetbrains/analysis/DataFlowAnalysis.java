@@ -25,7 +25,6 @@ public class DataFlowAnalysis {
     public void showDataFlowWithOptionalExample() {
         Optional<String> optional = getAnOptional();
         if (optional.isPresent()) {
-
         }
     }
 
@@ -39,7 +38,6 @@ public class DataFlowAnalysis {
         } else if (intValue < -10) {
             throw new IllegalArgumentException("Number too low");
         }
-
         System.out.println(intValue);
     }
 
@@ -71,7 +69,8 @@ public class DataFlowAnalysis {
         String b = "b";
         String c = "c";
         String d = "d";
-        if (Stream.of(a, b, c).allMatch(Objects::nonNull)) {
+
+        if (Stream.of(a, b, c, d).allMatch(Objects::nonNull)) {  //Stream.of(xx, xx, xx) up to three value, if add fourth value, then no warning.
             System.out.println("Present and correct");
         }
     }
@@ -86,7 +85,7 @@ public class DataFlowAnalysis {
     }
 
     private void automaticallyRemoveDoubleNegation(Foo x) {
-        if (!(x instanceof Foo)) {
+        if (x == null) {
             return;
         }
         System.out.println(x);
@@ -111,7 +110,7 @@ public class DataFlowAnalysis {
         //String: contains, indexOf, startsWith, endsWith, lastIndexOf, length, trim, substring, equals, equalsIgnoreCase, charAt, codePointAt, compareTo, replace, valueOf
 
         int four = 4;
-        boolean sqrt = Math.sqrt(four) == 1;
+        boolean sqrt = false;
         //Math: abs, sqrt, min, max
 
     }
@@ -146,32 +145,16 @@ public class DataFlowAnalysis {
         if (day > 4) {
             throw new IllegalArgumentException("Invalid Day");
         }
-        String dayString;
-        switch (day) {
-            case 1:
-                dayString = "Monday";
-                break;
-            case 2:
-                dayString = "Tuesday";
-                break;
-            case 3:
-                dayString = "Wednesday";
-                break;
-            case 4:
-                dayString = "Thursday";
-                break;
-            case 5:
-                dayString = "Friday";
-                break;
-            case 6:
-                dayString = "Saturday";
-                break;
-            case 7:
-                dayString = "Saturday";
-                break;
-            default:
-                dayString = "Invalid";
-        }
+        String dayString = switch (day) {
+            case 1 -> "Monday";
+            case 2 -> "Tuesday";
+            case 3 -> "Wednesday";
+            case 4 -> "Thursday";
+            case 5 -> "Friday";
+            case 6 -> "Saturday";
+            case 7 -> "Saturday";
+            default -> "Invalid";
+        };
     }
 
     @NotNull
@@ -182,12 +165,6 @@ public class DataFlowAnalysis {
     private void improvedAnalysisOfMathematicalOperations(int x) {
         if (x + 1 > 0) {
             System.out.println(x);
-            if (x < 0) {
-                System.out.println("Impossible!");
-            }
-        }
-        if (x * 2 == 15) {
-            System.out.println("Impossible!");
         }
     }
 
@@ -213,7 +190,7 @@ public class DataFlowAnalysis {
     }
 
     //private helper classes
-    private class Value {
+    private static class Value {
     }
 
     interface Foo {
